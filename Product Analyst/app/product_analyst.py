@@ -56,6 +56,18 @@ class ProductAnalyst:
         self.verbose = self.config['UserStoryWriter']['verbose']
         self.allow_delegation = self.config['UserStoryWriter']['allow_delegation']
         self.llm = Ollama(model=self.config['ProductAnalyst']['llm'])
+    
+    def ux_ui_requirements_a(self):
+        """
+        Performs requirement analysis for the UX/UI designer role.
+        Sets the role, goal, backstory, verbose, allow_delegation, and llm attributes.
+        """
+        self.role = self.config['UXUIRequirementsGenerator']['role']
+        self.goal = self.config['UXUIRequirementsGenerator']['goal']
+        self.backstory = self.config['UXUIRequirementsGenerator']['backstory']
+        self.verbose = self.config['UXUIRequirementsGenerator']['verbose']
+        self.allow_delegation = self.config['UXUIRequirementsGenerator']['allow_delegation']
+        self.llm = Ollama(model=self.config['ProductAnalyst']['llm'])
 
     def requirement_analysis_t(self):
         """
@@ -70,6 +82,13 @@ class ProductAnalyst:
         """
         self.description = self.config['UserStoryWriter']['task_description']
         self.output = self.config['UserStoryWriter']['task_output']
+    
+    def ux_ui_requirements_t(self):
+        """
+        Sets the task description and output for UX/UI requirements generation.
+        """
+        self.description = self.config['UXUIRequirementsGenerator']['task_description']
+        self.output = self.config['UXUIRequirementsGenerator']['task_output']
 
 
 def create_agent(product_analyst, type):
@@ -87,6 +106,8 @@ def create_agent(product_analyst, type):
         product_analyst.requirement_analysis_a()
     elif type.lower() == "write":
         product_analyst.user_stories_a()
+    elif type.lower() == "ux_ui":
+        product_analyst.ux_ui_requirements_a()
     else:
         print("Invalid type")
         return
@@ -118,6 +139,8 @@ def create_tasks(product_analyst, type, agent):
         product_analyst.requirement_analysis_t()
     elif type.lower() == "write":
         product_analyst.user_stories_t()
+    elif type.lower() == "ux_ui":
+        product_analyst.ux_ui_requirements_t()
     else:
         print("Invalid type")
         return
@@ -158,11 +181,13 @@ def main():
     product_analyst.load_config()
     requirement_analyser = create_agent(product_analyst, "analyse")
     user_story_writer = create_agent(product_analyst, "write")
+    ux_ui_requirements_generator = create_agent(product_analyst, "ux_ui")
     
     while True:
         print("\n1. Analyse requirements")
         print("\n2. Write user stories")
-        print("\n3. Exit")
+        print("\n3. Generate UX/UI requirements")
+        print("\n4. Exit")
         choice = input("\nPlease enter your choice: ")
         
         if choice == "1":
@@ -187,6 +212,11 @@ def main():
             crew = create_crew([user_story_writer], [task2])
             crew.kickoff()
         elif choice == "3":
+            task3 = create_tasks(product_analyst, "ux_ui", ux_ui_requirements_generator)
+            task3.description = product_analyst.config.get('TaskDescriptions', 'UXUI')
+            crew = create_crew([ux_ui_requirements_generator], [task3])
+            crew.kickoff()
+        elif choice == "4":
             break
         else:
             print("Invalid choice. Please try again")

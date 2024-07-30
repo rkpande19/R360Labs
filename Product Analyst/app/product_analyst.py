@@ -4,6 +4,8 @@ from crewai import Agent, Task, Crew, Process
 from langchain_community.llms import Ollama
 from crewai_tools import tool
 import configparser
+import os
+from docx import Document
 
 class ProductAnalyst:
     """
@@ -143,12 +145,54 @@ def create_crew(agents, tasks):
     crew = Crew(agents=agents, tasks=tasks, verbose=True)
     return crew
 
+def read_docx(file_path):
+    doc = Document(file_path)
+    return " ".join([paragraph.text for paragraph in doc.paragraphs])
+
 
 def main():
     """
     The main function of the program.
     """
-    input_text = input("Please enter the text to analyze: ")
+    product_analyst = ProductAnalyst()
+    product_analyst.load_config()
+    requirement_analyser = create_agent(product_analyst, "analyse")
+    user_story_writer = create_agent(product_analyst, "write")
+    
+    while True:
+        print("\n1. Analyse requirements")
+        print("\n2. Write user stories")
+        print("\n3. Exit")
+        choice = input("\nPlease enter your choice: ")
+        
+        if choice == "1":
+            input_text = input("Please enter the text to analyze or a file path ")
+            if os.path.isfile(input_text):
+                file_extension = os.path.splitext(input_text)[1]
+                if file_extension == ".txt":
+                    with open(input_text, "r") as file:
+                        input_text = file.read()
+                elif file_extension in ['.doc', '.docx']:
+                    input_text = read_docx(input_text)
+                else:
+                    print("Invalid file format. Please enter a text file")
+                    continue
+            task1 = create_tasks(product_analyst, "analyse", requirement_analyser)
+            task1.description = product_analyst.config.get('TaskDescriptions', 'Analyse').format(input_text)
+            crew = create_crew([requirement_analyser], [task1])
+            crew.kickoff()
+        elif choice == "2":
+            task2 = create_tasks(product_analyst, "write", user_story_writer)
+            task2.description = product_analyst.config.get('TaskDescriptions', 'Write')
+            crew = create_crew([user_story_writer], [task2])
+            crew.kickoff()
+        elif choice == "3":
+            break
+        else:
+            print("Invalid choice. Please try again")
+            
+            
+    """input_text = input("Please enter the text to analyze: ")
     product_analyst = ProductAnalyst()
     product_analyst.load_config()
     requirement_analyser = create_agent(product_analyst, "analyse")
@@ -159,7 +203,7 @@ def main():
     task2.description = product_analyst.config.get('TaskDescriptions', 'Write')
 
     crew = create_crew([requirement_analyser, user_story_writer], [task1, task2])
-    crew.kickoff()
+    crew.kickoff()"""
 
 
 if __name__ == "__main__":

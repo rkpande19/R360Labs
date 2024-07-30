@@ -191,20 +191,6 @@ def main():
         else:
             print("Invalid choice. Please try again")
             
-            
-    """input_text = input("Please enter the text to analyze: ")
-    product_analyst = ProductAnalyst()
-    product_analyst.load_config()
-    requirement_analyser = create_agent(product_analyst, "analyse")
-    user_story_writer = create_agent(product_analyst, "write")
-    task1 = create_tasks(product_analyst, "analyse", requirement_analyser)
-    task1.description = product_analyst.config.get('TaskDescriptions', 'Analyse').format(input_text)
-    task2 = create_tasks(product_analyst, "write", user_story_writer)
-    task2.description = product_analyst.config.get('TaskDescriptions', 'Write')
-
-    crew = create_crew([requirement_analyser, user_story_writer], [task1, task2])
-    crew.kickoff()"""
-
 
 if __name__ == "__main__":
     main()
